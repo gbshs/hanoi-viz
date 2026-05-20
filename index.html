@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>하노이탑 재귀 시각화</title>
+<style>
+:root {
+  --bg: #f0f2f5;
+  --panel-bg: #ffffff;
+  --border: #d0d7de;
+  --text: #1f2328;
+  --text-muted: #656d76;
+  --hl-line: #ddd0ff;
+  --node-current: #6d28d9;
+  --node-done: #9ca3af;
+  --btn-bg: #374151;
+  --btn-text: #ffffff;
+  --output-bg: #f6f8fa;
+  --stack-top-border: #6d28d9;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'Courier New', Courier, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --panel-bg: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --hl-line: #3b1d6b;
+    --output-bg: #1c2128;
+    --btn-bg: #21262d;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font);
+  font-size:14px;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  overflow:hidden;
+}
+header{
+  padding:8px 16px;
+  background:var(--panel-bg);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+}
+header h1{font-size:1rem;font-weight:700}
+header p{font-size:11px;color:var(--text-muted)}
+.panels{
+  display:flex;
+  flex:1;
+  gap:6px;
+  padding:6px;
+  overflow:hidden;
+  min-height:0;
+}
+.panel{
+  background:var(--panel-bg);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  flex:1;
+  min-width:0;
+}
+.panel-title{
+  font-size:10px;
+  font-weight:700;
+  color:var(--text-muted);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  padding-bottom:6px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:8px;
+  flex-shrink:0;
+}
+
+/* CODE */
+#code-block{
+  font-family:var(--mono);
+  font-size:12.5px;
+  line-height:1.65;
+  overflow-y:auto;
+  flex:1;
+}
+.cl{display:flex;padding:1px 4px;border-radius:3px;transition:background .2s}
+.cl.hl{background:var(--hl-line)}
+.ln{color:var(--text-muted);min-width:18px;margin-right:10px;text-align:right;user-select:none;flex-shrink:0}
+.lc{white-space:pre}
+
+/* TREE */
+#tree-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0}
+#tree-svg{width:100%;height:100%;max-height:100%}
+.t-edge{stroke:var(--border);stroke-width:1.5;fill:none}
+.t-el{font-size:9px;fill:var(--text-muted);font-family:var(--mono);text-anchor:middle}
+.t-node rect{fill:var(--panel-bg);stroke:var(--border);stroke-width:1.5;rx:5;transition:fill .25s,stroke .25s}
+.t-node text{fill:var(--text);font-size:8.5px;font-family:var(--mono);text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+.t-node.cur rect{fill:var(--node-current);stroke:var(--node-current)}
+.t-node.cur text{fill:#fff}
+.t-node.done rect{fill:var(--node-done);stroke:var(--node-done)}
+.t-node.done text{fill:#fff}
+
+/* STACK */
+#stack-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.sf{
+  background:var(--output-bg);
+  border:1px solid var(--border);
+  border-radius:5px;
+  padding:5px 8px;
+  font-family:var(--mono);
+  font-size:11.5px;
+}
+.sf.top{border-color:var(--stack-top-border);border-width:2px}
+.sf-name{font-weight:700;font-size:12px;margin-bottom:2px}
+.sf-args{color:var(--text-muted);font-size:10.5px}
+.stack-empty{color:var(--text-muted);text-align:center;padding:20px;font-style:italic;font-size:12px}
+
+/* OUTPUT */
+#out-sec{
+  flex-shrink:0;
+  margin:0 6px 4px;
+  background:var(--panel-bg);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:6px 10px;
+  max-height:72px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.out-title{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;flex-shrink:0}
+#out-lines{display:flex;flex-wrap:wrap;gap:4px;overflow-y:auto;font-family:var(--mono);font-size:11.5px}
+.oi{background:var(--output-bg);border-radius:3px;padding:1px 6px;border:1px solid transparent}
+.oi.new{border-color:var(--node-current);color:var(--node-current)}
+
+/* FOOTER */
+footer{
+  flex-shrink:0;
+  padding:6px 8px;
+  background:var(--panel-bg);
+  border-top:1px solid var(--border);
+}
+#desc{
+  text-align:center;
+  font-size:12.5px;
+  background:var(--output-bg);
+  border-radius:5px;
+  padding:5px 10px;
+  margin-bottom:6px;
+  min-height:24px;
+  line-height:1.4;
+}
+.ctrl{display:flex;justify-content:center;align-items:center;gap:8px}
+.ctrl button{
+  background:var(--btn-bg);
+  color:var(--btn-text);
+  border:none;
+  border-radius:5px;
+  padding:5px 14px;
+  font-size:12.5px;
+  cursor:pointer;
+  transition:opacity .2s;
+}
+.ctrl button:disabled{opacity:.35;cursor:default}
+.ctrl button:not(:disabled):hover{opacity:.8}
+#ctr{font-size:12px;color:var(--text-muted);min-width:48px;text-align:center}
+
+@media(max-width:680px){
+  body{overflow:auto}
+  .panels{flex-direction:column;overflow:visible;height:auto}
+  .panel{min-height:200px;flex:none}
+  #tree-wrap{min-height:180px}
+  #out-sec{max-height:80px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>하노이탑 재귀 시각화</h1>
+  <p>hanoi(3, 'A', 'C', 'B') — 키보드 ← → 로 이동 가능</p>
+</header>
+
+<div class="panels">
+  <div class="panel">
+    <div class="panel-title">파이썬 코드</div>
+    <div id="code-block"></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">호출 트리</div>
+    <div id="tree-wrap">
+      <svg id="tree-svg" viewBox="0 0 500 210" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">콜 스택 (위 = 현재 프레임)</div>
+    <div id="stack-list"></div>
+  </div>
+</div>
+
+<div id="out-sec">
+  <div class="out-title">출력 결과 (누적)</div>
+  <div id="out-lines"></div>
+</div>
+
+<footer>
+  <div id="desc"></div>
+  <div class="ctrl">
+    <button id="breset">처음으로</button>
+    <button id="bprev">◀ 이전</button>
+    <button id="bnext">다음 ▶</button>
+    <span id="ctr"></span>
+  </div>
+</footer>
+
+<script>
+const CODE = [
+  "def hanoi(n, start, end, mid):",
+  "    if n == 1:",
+  "        print(f'원판 1: {start} → {end}')",
+  "        return",
+  "    hanoi(n-1, start, mid, end)   # ①",
+  "    print(f'원판 {n}: {start} → {end}')   # ②",
+  "    hanoi(n-1, mid, end, start)   # ③",
+  "",
+  "hanoi(3, 'A', 'C', 'B')",
+];
+
+// SVG node positions (center x, center y)
+const NP = {
+  n0:{x:250,y:28},
+  n1:{x:118,y:98},
+  n4:{x:382,y:98},
+  n2:{x:48,y:175},
+  n3:{x:188,y:175},
+  n5:{x:312,y:175},
+  n6:{x:452,y:175},
+};
+const NL = {
+  n0:'hanoi(3,A,C,B)',
+  n1:'hanoi(2,A,B,C)',
+  n4:'hanoi(2,B,C,A)',
+  n2:'hanoi(1,A,C,B)',
+  n3:'hanoi(1,C,B,A)',
+  n5:'hanoi(1,B,A,C)',
+  n6:'hanoi(1,A,C,B)',
+};
+const EDGES = [
+  {f:'n0',t:'n1',l:'①'},{f:'n0',t:'n4',l:'③'},
+  {f:'n1',t:'n2',l:'①'},{f:'n1',t:'n3',l:'③'},
+  {f:'n4',t:'n5',l:'①'},{f:'n4',t:'n6',l:'③'},
+];
+
+const RW=80, RH=34;
+
+const P0=[];
+const P4=P0.concat(['원판 1: A → C']);
+const P5=P4.concat(['원판 2: A → B']);
+const P7=P5.concat(['원판 1: C → B']);
+const P8=P7.concat(['원판 3: A → C']);
+const P11=P8.concat(['원판 1: B → A']);
+const P12=P11.concat(['원판 2: B → C']);
+const P14=P12.concat(['원판 1: A → C']);
+
+const STEPS=[
+  {ls:[2],cur:'n0',dn:[],stk:[{n:3,s:'A',e:'C',m:'B'}],prints:P0,
+   desc:'hanoi(3, A, C, B) 호출 — if n == 1 확인. n=3이므로 조건 불만족, 재귀로 진행합니다.'},
+  {ls:[5],cur:'n1',dn:[],stk:[{n:2,s:'A',e:'B',m:'C'},{n:3,s:'A',e:'C',m:'B'}],prints:P0,
+   desc:'① hanoi(2, A, B, C) 호출 — hanoi(n-1, start, mid, end) 실행. 스택에 새 프레임 추가.'},
+  {ls:[5],cur:'n2',dn:[],stk:[{n:1,s:'A',e:'C',m:'B'},{n:2,s:'A',e:'B',m:'C'},{n:3,s:'A',e:'C',m:'B'}],prints:P0,
+   desc:'① hanoi(1, A, C, B) 호출 — n=1인 기저 사례(base case)에 도달했습니다.'},
+  {ls:[2,3],cur:'n2',dn:[],stk:[{n:1,s:'A',e:'C',m:'B'},{n:2,s:'A',e:'B',m:'C'},{n:3,s:'A',e:'C',m:'B'}],prints:P4,
+   desc:'기저 사례(n=1) — 원판 1: A → C 출력 후 return. 스택 프레임 제거.'},
+  {ls:[6],cur:'n1',dn:['n2'],stk:[{n:2,s:'A',e:'B',m:'C'},{n:3,s:'A',e:'C',m:'B'}],prints:P5,
+   desc:'hanoi(2, A, B, C)로 복귀 — ② 원판 2: A → B 출력.'},
+  {ls:[7],cur:'n3',dn:['n2'],stk:[{n:1,s:'C',e:'B',m:'A'},{n:2,s:'A',e:'B',m:'C'},{n:3,s:'A',e:'C',m:'B'}],prints:P5,
+   desc:'③ hanoi(1, C, B, A) 호출 — hanoi(n-1, mid, end, start) 실행.'},
+  {ls:[2,3],cur:'n3',dn:['n2'],stk:[{n:1,s:'C',e:'B',m:'A'},{n:2,s:'A',e:'B',m:'C'},{n:3,s:'A',e:'C',m:'B'}],prints:P7,
+   desc:'기저 사례(n=1) — 원판 1: C → B 출력 후 return. hanoi(2,A,B,C)도 완료.'},
+  {ls:[6],cur:'n0',dn:['n1','n2','n3'],stk:[{n:3,s:'A',e:'C',m:'B'}],prints:P8,
+   desc:'hanoi(3, A, C, B)로 복귀 — ② 원판 3: A → C 출력. 왼쪽 절반 완료!'},
+  {ls:[7],cur:'n4',dn:['n1','n2','n3'],stk:[{n:2,s:'B',e:'C',m:'A'},{n:3,s:'A',e:'C',m:'B'}],prints:P8,
+   desc:'③ hanoi(2, B, C, A) 호출 — hanoi(n-1, mid, end, start) 실행.'},
+  {ls:[5],cur:'n5',dn:['n1','n2','n3'],stk:[{n:1,s:'B',e:'A',m:'C'},{n:2,s:'B',e:'C',m:'A'},{n:3,s:'A',e:'C',m:'B'}],prints:P8,
+   desc:'① hanoi(1, B, A, C) 호출 — n=1인 기저 사례에 도달했습니다.'},
+  {ls:[2,3],cur:'n5',dn:['n1','n2','n3'],stk:[{n:1,s:'B',e:'A',m:'C'},{n:2,s:'B',e:'C',m:'A'},{n:3,s:'A',e:'C',m:'B'}],prints:P11,
+   desc:'기저 사례(n=1) — 원판 1: B → A 출력 후 return.'},
+  {ls:[6],cur:'n4',dn:['n1','n2','n3','n5'],stk:[{n:2,s:'B',e:'C',m:'A'},{n:3,s:'A',e:'C',m:'B'}],prints:P12,
+   desc:'hanoi(2, B, C, A)로 복귀 — ② 원판 2: B → C 출력.'},
+  {ls:[7],cur:'n6',dn:['n1','n2','n3','n5'],stk:[{n:1,s:'A',e:'C',m:'B'},{n:2,s:'B',e:'C',m:'A'},{n:3,s:'A',e:'C',m:'B'}],prints:P12,
+   desc:'③ hanoi(1, A, C, B) 호출 — hanoi(n-1, mid, end, start) 실행.'},
+  {ls:[2,3],cur:'n6',dn:['n1','n2','n3','n5'],stk:[{n:1,s:'A',e:'C',m:'B'},{n:2,s:'B',e:'C',m:'A'},{n:3,s:'A',e:'C',m:'B'}],prints:P14,
+   desc:'기저 사례(n=1) — 원판 1: A → C 출력 후 return. hanoi(2,B,C,A)도 완료.'},
+  {ls:[9],cur:null,dn:['n0','n1','n2','n3','n4','n5','n6'],stk:[],prints:P14,
+   desc:'🎉 모든 재귀 호출 완료! 원판 3개를 A에서 C로 성공적으로 이동했습니다.'},
+];
+
+let step=0;
+
+function buildCode(){
+  const el=document.getElementById('code-block');
+  CODE.forEach((line,i)=>{
+    const d=document.createElement('div');
+    d.className='cl';d.id='ln'+(i+1);
+    const n=document.createElement('span');n.className='ln';n.textContent=i+1;
+    const c=document.createElement('span');c.className='lc';c.textContent=line||' ';
+    d.appendChild(n);d.appendChild(c);el.appendChild(d);
+  });
+}
+
+function svg(tag,attrs){
+  const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(const[k,v] of Object.entries(attrs))el.setAttribute(k,v);
+  return el;
+}
+
+function buildTree(){
+  const s=document.getElementById('tree-svg');
+  EDGES.forEach(e=>{
+    const f=NP[e.f],t=NP[e.t];
+    const fy=f.y+RH/2, ty=t.y-RH/2;
+    s.appendChild(svg('line',{x1:f.x,y1:fy,x2:t.x,y2:ty,class:'t-edge'}));
+    const mx=(f.x+t.x)/2+8, my=(fy+ty)/2;
+    const tl=svg('text',{x:mx,y:my,class:'t-el'});tl.textContent=e.l;s.appendChild(tl);
+  });
+  Object.entries(NP).forEach(([id,p])=>{
+    const g=svg('g',{class:'t-node',id:'nd-'+id});
+    g.appendChild(svg('rect',{x:p.x-RW/2,y:p.y-RH/2,width:RW,height:RH,rx:5}));
+    const lbl=NL[id],parts=lbl.split('(');
+    const t1=svg('text',{x:p.x,y:p.y-7,'font-size':8.5,'font-family':'monospace','text-anchor':'middle','fill':'currentColor'});
+    t1.textContent=parts[0]+'(';
+    const t2=svg('text',{x:p.x,y:p.y+8,'font-size':8.5,'font-family':'monospace','text-anchor':'middle','fill':'currentColor'});
+    t2.textContent=parts[1];
+    g.appendChild(t1);g.appendChild(t2);
+    s.appendChild(g);
+  });
+}
+
+function render(){
+  const st=STEPS[step];
+  // Code
+  document.querySelectorAll('.cl').forEach(el=>el.classList.remove('hl'));
+  st.ls.forEach(n=>{const el=document.getElementById('ln'+n);if(el)el.classList.add('hl');});
+  // Tree
+  document.querySelectorAll('.t-node').forEach(el=>el.classList.remove('cur','done'));
+  if(st.cur){const el=document.getElementById('nd-'+st.cur);if(el)el.classList.add('cur');}
+  st.dn.forEach(id=>{const el=document.getElementById('nd-'+id);if(el)el.classList.add('done');});
+  // Stack
+  const sl=document.getElementById('stack-list');sl.innerHTML='';
+  if(!st.stk.length){
+    const d=document.createElement('div');d.className='stack-empty';
+    d.textContent='(빈 스택 — 모든 호출 완료)';sl.appendChild(d);
+  } else {
+    st.stk.forEach((f,i)=>{
+      const d=document.createElement('div');d.className='sf'+(i===0?' top':'');
+      d.innerHTML=`<div class="sf-name">hanoi()</div><div class="sf-args">n = ${f.n} &nbsp;|&nbsp; start = '${f.s}' &nbsp;|&nbsp; end = '${f.e}' &nbsp;|&nbsp; mid = '${f.m}'</div>`;
+      sl.appendChild(d);
+    });
+  }
+  // Output
+  const ol=document.getElementById('out-lines');ol.innerHTML='';
+  const prev=step>0?STEPS[step-1].prints:[];
+  if(!st.prints.length){
+    ol.innerHTML='<span style="color:var(--text-muted);font-size:11px;font-style:italic">아직 출력 없음</span>';
+  } else {
+    st.prints.forEach((p,i)=>{
+      const sp=document.createElement('span');
+      sp.className='oi'+(i>=prev.length?' new':'');
+      sp.textContent=p;ol.appendChild(sp);
+    });
+  }
+  // Description
+  document.getElementById('desc').textContent=st.desc;
+  document.getElementById('ctr').textContent=`${step+1} / ${STEPS.length}`;
+  document.getElementById('bprev').disabled=step===0;
+  document.getElementById('bnext').disabled=step===STEPS.length-1;
+}
+
+document.getElementById('breset').onclick=()=>{step=0;render();};
+document.getElementById('bprev').onclick=()=>{if(step>0){step--;render();}};
+document.getElementById('bnext').onclick=()=>{if(step<STEPS.length-1){step++;render();}};
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){if(step<STEPS.length-1){step++;render();}}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){if(step>0){step--;render();}}
+});
+
+buildCode();
+buildTree();
+render();
+</script>
+</body>
+</html>
