@@ -298,12 +298,10 @@ function rebuildTree(){
   nodes.forEach(nd=>{
     const g=svgEl('g',{id:'nd-'+nd.id,class:'t-node hidden'});
     g.appendChild(svgEl('rect',{x:nd.x-RW/2,y:nd.y-RH/2,width:RW,height:RH,rx:4}));
-    const label=`hanoi(${nd.n},${nd.s},${nd.e},${nd.m})`;
-    const sp=label.indexOf('(');
     const t1=svgEl('text',{x:nd.x,y:nd.y-(RH>22?7:4),'font-size':FS,'font-family':'monospace','text-anchor':'middle','fill':'currentColor'});
-    t1.textContent=label.slice(0,sp+1);
+    t1.textContent='hanoi';
     const t2=svgEl('text',{x:nd.x,y:nd.y+(RH>22?6:3),'font-size':FS,'font-family':'monospace','text-anchor':'middle','fill':'currentColor'});
-    t2.textContent=label.slice(sp+1);
+    t2.textContent=`(${nd.n},${nd.s},${nd.e},${nd.m})`;
     g.appendChild(t1);g.appendChild(t2);
     s.appendChild(g);
   });
