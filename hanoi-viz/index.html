@@ -58,7 +58,8 @@ header h1{font-size:.95rem;font-weight:700;white-space:nowrap}
 .t-node.cur text{fill:#fff}
 .t-node.done rect{fill:var(--node-done);stroke:var(--node-done)}
 .t-node.done text{fill:#fff}
-.t-node.hidden,.t-eg.hidden{display:none}
+.t-node,.t-eg{transition:opacity .25s}
+.t-node.hidden,.t-eg.hidden{opacity:0;pointer-events:none}
 
 #stack-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
 .sf{background:var(--out-bg);border:1px solid var(--border);border-radius:5px;
@@ -187,7 +188,7 @@ function generateData(N){
   const levelH=(SVG_H-2*MY)/N;
   const RW=Math.min(76,cellW*0.88);
   const RH=Math.min(30,levelH*0.58);
-  const FS=N<=3?8.5:7.5;
+  const FS=N===4?7:N===3?8.5:9.5;
 
   nodes.forEach(nd=>{
     nd.x=MX+xLeaf[nd.id]*cellW+cellW/2;
