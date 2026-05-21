@@ -102,9 +102,9 @@ footer{flex-shrink:0;padding:6px 8px;background:var(--panel-bg);border-top:1px s
   <h1>하노이탑 재귀 시각화</h1>
   <div class="n-sel">
     <span class="n-lbl">n =</span>
-    <button class="n-btn" data-n="2">2 <small style="opacity:.65">(7단계)</small></button>
-    <button class="n-btn" data-n="3">3 <small style="opacity:.65">(15단계)</small></button>
-    <button class="n-btn" data-n="4">4 <small style="opacity:.65">(31단계)</small></button>
+    <button class="n-btn" data-n="2">2 <small style="opacity:.65">(8단계)</small></button>
+    <button class="n-btn" data-n="3">3 <small style="opacity:.65">(16단계)</small></button>
+    <button class="n-btn" data-n="4">4 <small style="opacity:.65">(32단계)</small></button>
   </div>
   <p id="sub"></p>
 </header>
@@ -231,6 +231,8 @@ function generateData(N){
     visSet.add(id);
     callStack.unshift({n:nd.n,s:nd.s,e:nd.e,m:nd.m});
     steps.push(snap(entryLine,id,entryDesc(nd,entryLine[0])));
+    if(entryLine[0]===9)
+      steps.push(snap([2],id,entryDesc(nd,2)));
 
     if(nd.n===1){
       prints.push(`원판 1: ${nd.s} → ${nd.e}`);
