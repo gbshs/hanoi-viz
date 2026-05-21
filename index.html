@@ -102,9 +102,9 @@ footer{flex-shrink:0;padding:6px 8px;background:var(--panel-bg);border-top:1px s
   <h1>하노이탑 재귀 시각화</h1>
   <div class="n-sel">
     <span class="n-lbl">n =</span>
-    <button class="n-btn" data-n="2">2 <small style="opacity:.65">(8단계)</small></button>
-    <button class="n-btn" data-n="3">3 <small style="opacity:.65">(16단계)</small></button>
-    <button class="n-btn" data-n="4">4 <small style="opacity:.65">(32단계)</small></button>
+    <button class="n-btn" data-n="2">2 <small style="opacity:.65">(7단계)</small></button>
+    <button class="n-btn" data-n="3">3 <small style="opacity:.65">(15단계)</small></button>
+    <button class="n-btn" data-n="4">4 <small style="opacity:.65">(31단계)</small></button>
   </div>
   <p id="sub"></p>
 </header>
@@ -219,6 +219,8 @@ function generateData(N){
     const mk=line0===5?'① ':line0===7?'③ ':'';
     if(nd.n===1)
       return `${mk}hanoi(1, ${nd.s}, ${nd.e}, ${nd.m}) 호출 — n==1인 단말 노드에 도달했습니다.`;
+    if(line0===9)
+      return `hanoi(${nd.n}, 'A', 'C', 'B') 호출 — 재귀 시작.`;
     if(line0===2)
       return `hanoi(${nd.n}, ${nd.s}, ${nd.e}, ${nd.m}) 호출 — if n == 1 확인. n=${nd.n}이므로 조건 불만족, 재귀 진행.`;
     return `${mk}hanoi(${nd.n}, ${nd.s}, ${nd.e}, ${nd.m}) 호출 — if n == 1 확인. n=${nd.n}이므로 재귀 진행.`;
@@ -243,9 +245,7 @@ function generateData(N){
     }
   }
 
-  steps.push({ls:[9],cur:null,dn:[],vis:[nodes[0].id],stk:[],prints:[],
-    desc:`hanoi(${N}, 'A', 'C', 'B') 호출 — 재귀 시작.`});
-  sim(nodes[0].id,[2]);
+  sim(nodes[0].id,[9]);
   callStack.shift(); markDone(nodes[0].id);
   steps.push({ls:[9],cur:null,dn:[...doneSet],vis:[...visSet],stk:[],prints:[...prints],
     desc:`모든 재귀 호출 완료! 원판 ${N}개를 A에서 C로 성공적으로 이동했습니다.`});
