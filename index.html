@@ -222,8 +222,8 @@ function generateData(N){
     if(line0===9)
       return `hanoi(${nd.n}, 'A', 'C', 'B') 호출 — 재귀 시작.`;
     if(line0===2)
-      return `hanoi(${nd.n}, ${nd.s}, ${nd.e}, ${nd.m}) 호출 — if n == 1 확인. n=${nd.n}이므로 조건 불만족, 재귀 진행.`;
-    return `${mk}hanoi(${nd.n}, ${nd.s}, ${nd.e}, ${nd.m}) 호출 — if n == 1 확인. n=${nd.n}이므로 재귀 진행.`;
+      return `hanoi(${nd.n}, ${nd.s}, ${nd.e}, ${nd.m}) 호출 — if n == 1 확인. n==${nd.n}이므로 조건 불만족, 재귀 진행.`;
+    return `${mk}hanoi(${nd.n}, ${nd.s}, ${nd.e}, ${nd.m}) 호출 — if n == 1 확인. n==${nd.n}이므로 재귀 진행.`;
   }
 
   function sim(id,entryLine){
