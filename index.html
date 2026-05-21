@@ -58,6 +58,8 @@ header h1{font-size:.95rem;font-weight:700;white-space:nowrap}
 .t-node.cur text{fill:#fff}
 .t-node.done rect{fill:var(--node-done);stroke:var(--node-done)}
 .t-node.done text{fill:#fff}
+.t-node.ghost rect{fill:transparent;stroke:var(--border);stroke-dasharray:4,2}
+.t-node.ghost text{fill:var(--text-muted)}
 .t-node,.t-eg{transition:opacity .25s}
 .t-node.hidden,.t-eg.hidden{opacity:0;pointer-events:none}
 
@@ -102,9 +104,9 @@ footer{flex-shrink:0;padding:6px 8px;background:var(--panel-bg);border-top:1px s
   <h1>하노이탑 재귀 시각화</h1>
   <div class="n-sel">
     <span class="n-lbl">n =</span>
-    <button class="n-btn" data-n="2">2 <small style="opacity:.65">(8단계)</small></button>
-    <button class="n-btn" data-n="3">3 <small style="opacity:.65">(16단계)</small></button>
-    <button class="n-btn" data-n="4">4 <small style="opacity:.65">(32단계)</small></button>
+    <button class="n-btn" data-n="2">2 <small style="opacity:.65">(12단계)</small></button>
+    <button class="n-btn" data-n="3">3 <small style="opacity:.65">(28단계)</small></button>
+    <button class="n-btn" data-n="4">4 <small style="opacity:.65">(60단계)</small></button>
   </div>
   <p id="sub"></p>
 </header>
@@ -206,8 +208,8 @@ function generateData(N){
   const visSet=new Set();
   const callStack=[];  // index 0 = top
 
-  function snap(ls,curId,desc){
-    return{ls,cur:curId,dn:[...doneSet],vis:[...visSet],
+  function snap(ls,curId,desc,ghost=[]){
+    return{ls,cur:curId,dn:[...doneSet],vis:[...visSet],ghost,
            stk:callStack.map(f=>({...f})),prints:[...prints],desc};
   }
   function markDone(id){
@@ -226,28 +228,42 @@ function generateData(N){
     return `${mk}hanoi(${nd.n}, ${nd.s}, ${nd.e}, ${nd.m}) 호출 — if n == 1 확인. n==${nd.n}이므로 재귀 진행.`;
   }
 
-  function sim(id,entryLine){
+  function sim(id,entryLine,parentId){
     const nd=nodeMap[id];
-    visSet.add(id);
-    callStack.unshift({n:nd.n,s:nd.s,e:nd.e,m:nd.m});
-    steps.push(snap(entryLine,id,entryDesc(nd,entryLine[0])));
-    if(entryLine[0]===9)
+    if(entryLine[0]===9){
+      // 초기 호출: 기존 2-스텝
+      visSet.add(id);
+      callStack.unshift({n:nd.n,s:nd.s,e:nd.e,m:nd.m});
+      steps.push(snap([9],id,`hanoi(${N}, 'A', 'C', 'B') 호출 — 재귀 시작.`));
       steps.push(snap([2],id,entryDesc(nd,2)));
+    }else{
+      // 재귀 호출: 3단계
+      // 1단계: 호출 줄 하이라이트, 부모가 cur, 자식 아직 미표시
+      steps.push(snap(entryLine,parentId,'이 줄에서 새로운 호출 발생'));
+      // 2단계: def로 이동, 자식 ghost 등장, 엣지 출현
+      visSet.add(id);
+      steps.push(snap([1],parentId,
+        `def로 올라가서 인자가 새로 매핑됨 : n=${nd.n}, start='${nd.s}', end='${nd.e}', mid='${nd.m}'`,
+        [id]));
+      // 3단계: 인자 확정, 노드 활성화, 프레임 스택에 추가
+      callStack.unshift({n:nd.n,s:nd.s,e:nd.e,m:nd.m});
+      steps.push(snap([2],id,'새 호출 시작'));
+    }
 
     if(nd.n===1){
       prints.push(`원판 1: ${nd.s} → ${nd.e}`);
       steps.push(snap([2,3],id,`단말 노드(n==1) — 원판 1: ${nd.s} → ${nd.e} 출력 후 return.`));
     }else{
-      sim(nd.leftId,[5]);
+      sim(nd.leftId,[5],id);
       callStack.shift(); markDone(nd.leftId);
       prints.push(`원판 ${nd.n}: ${nd.s} → ${nd.e}`);
       steps.push(snap([6],id,`hanoi(${nd.n}, ${nd.s}, ${nd.e}, ${nd.m})으로 복귀 — ② 원판 ${nd.n}: ${nd.s} → ${nd.e} 출력.`));
-      sim(nd.rightId,[7]);
+      sim(nd.rightId,[7],id);
       callStack.shift(); markDone(nd.rightId);
     }
   }
 
-  sim(nodes[0].id,[9]);
+  sim(nodes[0].id,[9],null);
   callStack.shift(); markDone(nodes[0].id);
   steps.push({ls:[9],cur:null,dn:[...doneSet],vis:[...visSet],stk:[],prints:[...prints],
     desc:`모든 재귀 호출 완료! 원판 ${N}개를 A에서 C로 성공적으로 이동했습니다.`});
@@ -317,14 +333,15 @@ function render(){
   st.ls.forEach(n=>{const el=document.getElementById('ln'+n);if(el)el.classList.add('hl');});
 
   // Tree nodes
-  const visSet=new Set(st.vis), dnSet=new Set(st.dn);
+  const visSet=new Set(st.vis), dnSet=new Set(st.dn), ghostSet=new Set(st.ghost||[]);
   nodes.forEach(nd=>{
     const el=document.getElementById('nd-'+nd.id);
     const vis=visSet.has(nd.id);
     el.classList.toggle('hidden',!vis);
-    el.classList.remove('cur','done');
+    el.classList.remove('cur','done','ghost');
     if(vis){
-      if(nd.id===st.cur) el.classList.add('cur');
+      if(ghostSet.has(nd.id)) el.classList.add('ghost');
+      else if(nd.id===st.cur) el.classList.add('cur');
       else if(dnSet.has(nd.id)) el.classList.add('done');
     }
   });
