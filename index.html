@@ -102,9 +102,9 @@ footer{flex-shrink:0;padding:6px 8px;background:var(--panel-bg);border-top:1px s
   <h1>하노이탑 재귀 시각화</h1>
   <div class="n-sel">
     <span class="n-lbl">n =</span>
-    <button class="n-btn" data-n="2">2 <small style="opacity:.65">(7단계)</small></button>
-    <button class="n-btn" data-n="3">3 <small style="opacity:.65">(15단계)</small></button>
-    <button class="n-btn" data-n="4">4 <small style="opacity:.65">(31단계)</small></button>
+    <button class="n-btn" data-n="2">2 <small style="opacity:.65">(8단계)</small></button>
+    <button class="n-btn" data-n="3">3 <small style="opacity:.65">(16단계)</small></button>
+    <button class="n-btn" data-n="4">4 <small style="opacity:.65">(32단계)</small></button>
   </div>
   <p id="sub"></p>
 </header>
@@ -243,6 +243,8 @@ function generateData(N){
     }
   }
 
+  steps.push({ls:[9],cur:null,dn:[],vis:[],stk:[],prints:[],
+    desc:`hanoi(${N}, 'A', 'C', 'B') 호출 — 재귀 시작.`});
   sim(nodes[0].id,[2]);
   callStack.shift(); markDone(nodes[0].id);
   steps.push({ls:[9],cur:null,dn:[...doneSet],vis:[...visSet],stk:[],prints:[...prints],
