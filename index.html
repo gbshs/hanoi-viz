@@ -104,9 +104,9 @@ footer{flex-shrink:0;padding:6px 8px;background:var(--panel-bg);border-top:1px s
   <h1>하노이탑 재귀 시각화</h1>
   <div class="n-sel">
     <span class="n-lbl">n =</span>
-    <button class="n-btn" data-n="2">2 <small style="opacity:.65">(12단계)</small></button>
-    <button class="n-btn" data-n="3">3 <small style="opacity:.65">(28단계)</small></button>
-    <button class="n-btn" data-n="4">4 <small style="opacity:.65">(60단계)</small></button>
+    <button class="n-btn" data-n="2">2 <small style="opacity:.65">(13단계)</small></button>
+    <button class="n-btn" data-n="3">3 <small style="opacity:.65">(29단계)</small></button>
+    <button class="n-btn" data-n="4">4 <small style="opacity:.65">(61단계)</small></button>
   </div>
   <p id="sub"></p>
 </header>
@@ -231,10 +231,11 @@ function generateData(N){
   function sim(id,entryLine,parentId){
     const nd=nodeMap[id];
     if(entryLine[0]===9){
-      // 초기 호출: 기존 2-스텝
+      // 초기 호출: 3-스텝 (9번줄 → 1번줄 바인딩 → 2번줄)
       visSet.add(id);
       callStack.unshift({n:nd.n,s:nd.s,e:nd.e,m:nd.m});
-      steps.push(snap([9],id,`hanoi(${N}, 'A', 'C', 'B') 호출 — 재귀 시작.`));
+      steps.push(snap([9],id,'이 줄에서 새로운 호출 발생'));
+      steps.push(snap([1],id,`인자 바인딩: n=${nd.n}, start='${nd.s}', end='${nd.e}', mid='${nd.m}'`));
       steps.push(snap([2],id,entryDesc(nd,2)));
     }else{
       // 재귀 호출: 3단계
@@ -243,7 +244,7 @@ function generateData(N){
       // 2단계: def로 이동, 자식 ghost 등장, 엣지 출현
       visSet.add(id);
       steps.push(snap([1],parentId,
-        `def로 올라가서 인자가 새로 매핑됨 : n=${nd.n}, start='${nd.s}', end='${nd.e}', mid='${nd.m}'`,
+        `인자 바인딩: n=${nd.n}, start='${nd.s}', end='${nd.e}', mid='${nd.m}'`,
         [id]));
       // 3단계: 인자 확정, 노드 활성화, 프레임 스택에 추가
       callStack.unshift({n:nd.n,s:nd.s,e:nd.e,m:nd.m});
