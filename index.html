@@ -243,7 +243,7 @@ function generateData(N){
     }
   }
 
-  steps.push({ls:[9],cur:null,dn:[],vis:[],stk:[],prints:[],
+  steps.push({ls:[9],cur:null,dn:[],vis:[nodes[0].id],stk:[],prints:[],
     desc:`hanoi(${N}, 'A', 'C', 'B') 호출 — 재귀 시작.`});
   sim(nodes[0].id,[2]);
   callStack.shift(); markDone(nodes[0].id);
