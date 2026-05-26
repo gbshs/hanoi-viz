@@ -239,16 +239,20 @@ function generateData(N){
       steps.push(snap([2],id,entryDesc(nd,2)));
     }else{
       // 재귀 호출: 3단계
+      const mk=entryLine[0]===5?'① ':'③ ';
+      const callExpr=entryLine[0]===5
+        ?'hanoi(n-1, start, mid, end)'
+        :'hanoi(n-1, mid, end, start)';
       // 1단계: 호출 줄 하이라이트, 부모가 cur, 자식 아직 미표시
       steps.push(snap(entryLine,parentId,'이 줄에서 새로운 호출 발생'));
       // 2단계: def로 이동, 자식 ghost 등장, 엣지 출현
       visSet.add(id);
       steps.push(snap([1],parentId,
-        `인자 바인딩: n=${nd.n}, start='${nd.s}', end='${nd.e}', mid='${nd.m}'`,
+        `${mk}${callExpr} → 인자 바인딩: n=${nd.n}, start='${nd.s}', end='${nd.e}', mid='${nd.m}'`,
         [id]));
       // 3단계: 인자 확정, 노드 활성화, 프레임 스택에 추가
       callStack.unshift({n:nd.n,s:nd.s,e:nd.e,m:nd.m});
-      steps.push(snap([2],id,'새 호출 시작'));
+      steps.push(snap([2],id,entryDesc(nd,entryLine[0])));
     }
 
     if(nd.n===1){
