@@ -235,7 +235,7 @@ function generateData(N){
       visSet.add(id);
       callStack.unshift({n:nd.n,s:nd.s,e:nd.e,m:nd.m});
       steps.push(snap([9],id,'이 줄에서 새로운 호출 발생'));
-      steps.push(snap([1],id,`인자 바인딩: n=${nd.n}, start='${nd.s}', end='${nd.e}', mid='${nd.m}'`));
+      steps.push(snap([1],id,`인수 바인딩: n=${nd.n}, start='${nd.s}', end='${nd.e}', mid='${nd.m}'`));
       steps.push(snap([2],id,entryDesc(nd,2)));
     }else{
       // 재귀 호출: 3단계
@@ -248,9 +248,9 @@ function generateData(N){
       // 2단계: def로 이동, 자식 ghost 등장, 엣지 출현
       visSet.add(id);
       steps.push(snap([1],parentId,
-        `${mk}${callExpr} → 인자 바인딩: n=${nd.n}, start='${nd.s}', end='${nd.e}', mid='${nd.m}'`,
+        `${mk}${callExpr} → 인수 바인딩: n=${nd.n}, start='${nd.s}', end='${nd.e}', mid='${nd.m}'`,
         [id]));
-      // 3단계: 인자 확정, 노드 활성화, 프레임 스택에 추가
+      // 3단계: 인수 확정, 노드 활성화, 프레임 스택에 추가
       callStack.unshift({n:nd.n,s:nd.s,e:nd.e,m:nd.m});
       steps.push(snap([2],id,entryDesc(nd,entryLine[0])));
     }
